@@ -1,0 +1,9 @@
+target/
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+# Never let local database credentials into an image layer — they are supplied as
+# environment variables by the host instead.
+src/main/resources/application-local.yml

@@ -1,0 +1,39 @@
+# Render Blueprint for the Spring Boot API. Optional — you can create the same service by
+# hand in the dashboard — but committing it means the deployment is reproducible and
+# reviewable rather than a set of clicks nobody wrote down.
+#
+# Apply with: Render Dashboard -> New -> Blueprint -> pick this repository.
+
+services:
+  - type: web
+    name: restaurant-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    # Neon project for this system lives in ap-southeast-1; Singapore keeps the API next to
+    # its database instead of putting an ocean between every query.
+    region: singapore
+    branch: main
+    healthCheckPath: /api/actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # sync:false = "prompt me for this in the dashboard, never store it in git".
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      # The Vercel origin(s) permitted to call the API. Comma-separated, no trailing slash.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: REPORTING_ZONE
+        value: Asia/Dhaka
+      - key: BILLING_TAX_RATE
+        value: "0.05"
+      - key: BILLING_SERVICE_CHARGE_RATE
+        value: "0.10"
