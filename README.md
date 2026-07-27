@@ -19,7 +19,7 @@ as the behaviour: layered architecture, SOLID, and a deliberate, documented use 
 **Out of scope by design:** online delivery or takeout, refunds and returns, supplier/purchase-order
 integration, and any modification of an order after payment.
 
-**Status: complete.** All functional requirements (FR-01–FR-24) are implemented and every
+**Status: complete.** All functional requirements (FR-01–FR-28) are implemented and every
 non-functional requirement (NFR-01–NFR-07) is backed by an automated test or a recorded measurement
 — 319 tests in the default build plus 21 integration tests against real PostgreSQL.
 

@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://restaurant-api.onrender.com/api/:path*"
+      "destination": "https://restaurant-api-zjiy.onrender.com/api/:path*"
     },
     {
       "source": "/((?!api/).*)",
