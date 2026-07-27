@@ -1,0 +1,190 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Order</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/orders">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    The Floor
+  </a>
+</header>
+
+<main class="ord">
+  @if (error(); as e) {
+    <p class="banner" role="alert">
+      <lucide-icon [img]="icons.alert" [size]="15"></lucide-icon>
+      {{ e }}
+      <button class="banner__x" (click)="error.set(null)">dismiss</button>
+    </p>
+  }
+  @if (notice(); as n) {
+    <p class="banner banner--ok" role="status">
+      <lucide-icon [img]="icons.ok" [size]="15"></lucide-icon>
+      {{ n }}
+      <button class="banner__x" (click)="notice.set(null)">dismiss</button>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading the order…</p>
+  }
+  @if (!loading() && !order()) {
+    <p class="muted">That order could not be loaded.</p>
+  }
+
+  <!-- Aliased from a plain @if: an `as` alias declared on @else if is not visible to nested
+       blocks, so the ticket's own @if/@for children could not see it. -->
+  @if (order(); as o) {
+    <div class="ord__head">
+      <div>
+        <h1 class="ord__title">Table {{ o.tableLabel }}</h1>
+        <p class="ord__meta">
+          Order #{{ o.id }} · opened by {{ o.waiterUsername }}
+        </p>
+      </div>
+      <span class="pill" [class]="'pill--' + o.status.toLowerCase()">{{ o.status }}</span>
+    </div>
+
+    @if (!o.editable) {
+      <p class="locked">
+        <lucide-icon [img]="icons.locked" [size]="15"></lucide-icon>
+        This order is {{ o.status }} — its items are locked. No additions, removals or changes
+        after it reaches the kitchen.
+      </p>
+    }
+
+    <div class="ord__grid">
+      <!-- ---- The ticket ---- -->
+      <section class="ticket">
+        <h2 class="ticket__title">The Ticket</h2>
+        @if (o.items.length === 0) {
+          <p class="muted">Nothing on this order yet. Pick something from the menu.</p>
+        } @else {
+          <ul class="lines">
+            @for (line of o.items; track line.id) {
+              <li class="line">
+                @if (canEditItems()) {
+                  <!-- Stepper: minus on a single-quantity line removes it (see step()). -->
+                  <span class="stepper">
+                    <button
+                      type="button"
+                      class="stepper__btn"
+                      [title]="line.quantity === 1 ? 'Remove this line' : 'One fewer'"
+                      [attr.aria-label]="line.quantity === 1 ? 'Remove ' + line.menuItemName : 'One fewer ' + line.menuItemName"
+                      [disabled]="busy()"
+                      (click)="step(line, -1)">
+                      <lucide-icon [img]="line.quantity === 1 ? icons.remove : icons.minus" [size]="14"></lucide-icon>
+                    </button>
+                    <span class="stepper__qty" aria-live="polite">{{ line.quantity }}</span>
+                    <button
+                      type="button"
+                      class="stepper__btn"
+                      title="One more"
+                      [attr.aria-label]="'One more ' + line.menuItemName"
+                      [disabled]="busy()"
+                      (click)="step(line, 1)">
+                      <lucide-icon [img]="icons.plus" [size]="14"></lucide-icon>
+                    </button>
+                  </span>
+                } @else {
+                  <span class="line__qty">{{ line.quantity }}×</span>
+                }
+                <span class="line__body">
+                  <span class="line__name">{{ line.menuItemName }}</span>
+                  @if (line.notes) { <span class="line__notes">“{{ line.notes }}”</span> }
+                  <span class="line__unit">{{ line.unitPrice.toFixed(2) }} ea</span>
+                </span>
+                <span class="line__total">{{ line.lineTotal.toFixed(2) }}</span>
+                @if (canEditItems()) {
+                  <button
+                    class="line__x"
+                    title="Remove this line"
+                    [attr.aria-label]="'Remove ' + line.menuItemName"
+                    [disabled]="busy()"
+                    (click)="remove(line.id)">
+                    <lucide-icon [img]="icons.remove" [size]="15"></lucide-icon>
+                  </button>
+                } @else {
+                  <span class="line__x line__x--off"></span>
+                }
+              </li>
+            }
+          </ul>
+
+          <div class="totals">
+            <span class="totals__label">Subtotal</span>
+            <span class="totals__count">{{ itemCount() }} item(s)</span>
+            <span class="totals__value">{{ o.subtotal.toFixed(2) }}</span>
+          </div>
+          <p class="totals__note">Tax and service charge are added at billing.</p>
+        }
+
+        <div class="ticket__actions">
+          @if (canConfirm()) {
+            <button class="btn btn--sm" [disabled]="busy()" (click)="confirm()">
+              {{ busy() ? 'Sending…' : 'Confirm & send to kitchen' }}
+            </button>
+          }
+          @if (canServe()) {
+            <button class="btn btn--sm" [disabled]="busy()" (click)="serve()">
+              {{ busy() ? 'Saving…' : 'Mark served' }}
+            </button>
+          }
+          @if (o.status === 'CONFIRMED' || o.status === 'PREPARING') {
+            <p class="await">
+              With the kitchen — “Mark served” unlocks once the order is READY.
+            </p>
+          }
+        </div>
+      </section>
+
+      <!-- ---- The picker ---- -->
+      @if (canEditItems()) {
+        <section class="picker">
+          <h2 class="picker__title">Add to the order</h2>
+          @if (groups().length === 0) {
+            <p class="muted">No available menu items. Ask a manager to open some up.</p>
+          } @else {
+            @for (g of groups(); track g.category.id) {
+              <div class="course">
+                <h3 class="course__title">{{ g.category.name }}</h3>
+                <ul class="dishes">
+                  @for (it of g.items; track it.id) {
+                    <li class="dish">
+                      <div class="dish__row">
+                        <span class="dish__name">{{ it.name }}</span>
+                        <span class="dish__price">{{ it.price.toFixed(2) }}</span>
+                      </div>
+                      <div class="dish__controls">
+                        <input
+                          class="dfield__input qty"
+                          type="number"
+                          min="1"
+                          step="1"
+                          [attr.aria-label]="'Quantity for ' + it.name"
+                          [value]="qtyFor(it.id)"
+                          (input)="setQty(it.id, $any($event.target).value)" />
+                        <input
+                          class="dfield__input notes"
+                          type="text"
+                          maxlength="300"
+                          placeholder="notes (optional)"
+                          [attr.aria-label]="'Notes for ' + it.name"
+                          [value]="notesFor(it.id)"
+                          (input)="setNotes(it.id, $any($event.target).value)" />
+                        <button
+                          class="btn btn--sm"
+                          [disabled]="busy()"
+                          (click)="add(it)">Add</button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          }
+        </section>
+      }
+    </div>
+  }
+</main>

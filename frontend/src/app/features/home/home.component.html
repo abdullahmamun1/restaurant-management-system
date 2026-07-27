@@ -1,0 +1,47 @@
+@if (user(); as u) {
+  <div class="pass">
+    <header class="rail">
+      <div class="rail__brand">
+        <span class="rail__mark">La&nbsp;Braise</span>
+        <span class="eyebrow rail__tag">Dine-In Ops</span>
+      </div>
+      <div class="rail__end">
+        <span class="badge" [attr.data-role]="u.role">{{ u.role }}</span>
+        <button class="btn btn--ghost" type="button" (click)="logout()">
+          <lucide-icon [img]="icons.logOut" [size]="15"></lucide-icon>
+          Clock Out
+        </button>
+      </div>
+    </header>
+
+    <section class="hello">
+      <p class="eyebrow hello__eyebrow">Shift open · {{ u.username }}</p>
+      <h1 class="hello__title">Welcome back,<br /><em>{{ u.fullName }}</em></h1>
+      <p class="hello__sub">Your stations for this shift are ready below.</p>
+    </section>
+
+    <section class="stations" aria-label="Your stations">
+      @for (s of stations(); track s.title) {
+        @if (s.route) {
+          <a class="station station--live" [routerLink]="s.route">
+            <lucide-icon class="station__glyph" [img]="s.icon" [size]="24" aria-hidden="true"></lucide-icon>
+            <div class="station__body">
+              <h2 class="station__title">{{ s.title }}</h2>
+              <p class="station__desc">{{ s.desc }}</p>
+            </div>
+            <span class="station__go" aria-hidden="true">→</span>
+          </a>
+        } @else {
+          <article class="station">
+            <lucide-icon class="station__glyph" [img]="s.icon" [size]="24" aria-hidden="true"></lucide-icon>
+            <div class="station__body">
+              <h2 class="station__title">{{ s.title }}</h2>
+              <p class="station__desc">{{ s.desc }}</p>
+            </div>
+            <span class="station__soon">Opening soon</span>
+          </article>
+        }
+      }
+    </section>
+  </div>
+}

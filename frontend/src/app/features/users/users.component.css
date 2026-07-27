@@ -1,0 +1,187 @@
+/*
+ * Staff list: a roster, not a CRUD grid. Role is the thing a manager scans for, so it carries the
+ * same colour coding as the badge on the home screen, and a retired account is dimmed rather than
+ * hidden — the point of retiring instead of deleting is that the person stays visible.
+ */
+.staff {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.muted { color: var(--ink-faint); font-size: 0.9rem; }
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #ffd9c7;
+  background: rgba(217, 84, 30, 0.14);
+  border: 1px solid rgba(217, 84, 30, 0.5);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 1.2rem;
+}
+.banner--ok {
+  color: #cfe9d8;
+  background: rgba(47, 107, 79, 0.16);
+  border-color: rgba(47, 107, 79, 0.55);
+}
+.banner__x {
+  margin-left: auto;
+  background: none; border: none; cursor: pointer; font: inherit;
+  color: var(--ember-lit); text-decoration: underline;
+}
+.banner--ok .banner__x { color: #8fd0ab; }
+
+.staff__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+.staff__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #f3e9dd;
+  margin: 0;
+}
+.staff__sub { font-size: 0.85rem; color: var(--ink-faint); margin: 0.3rem 0 0; }
+
+/* ---- Table (fixed layout, same reasoning as Inventory: content must not move the columns) --- */
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.95rem;
+}
+.grid col.col--person  { width: auto; }
+.grid col.col--role    { width: 9rem; }
+.grid col.col--status  { width: 8rem; }
+.grid col.col--actions { width: 10rem; }
+
+.grid thead th {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+  border-bottom: 1px solid rgba(240, 220, 190, 0.14);
+}
+.grid td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid rgba(240, 220, 190, 0.08);
+  color: var(--ink-dim);
+  vertical-align: middle;
+}
+.row--off td { opacity: 0.55; }
+
+.person { display: grid; gap: 0.15rem; min-width: 0; }
+.person__name {
+  color: #f3e9dd;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.person__user {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  margin-left: 0.4rem;
+}
+.tag--you { color: var(--gold); border: 1px solid rgba(198, 151, 73, 0.5); }
+
+/* Role colours match the badge on the home screen, so a role reads the same everywhere. */
+.role {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  padding: 0.28rem 0.5rem;
+  border-radius: 2px;
+  color: #fff;
+  background: var(--role, #555);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+.role[data-role='MANAGER'] { --role: var(--role-manager); }
+.role[data-role='WAITER']  { --role: var(--role-waiter); }
+.role[data-role='KITCHEN'] { --role: var(--role-kitchen); }
+.role[data-role='CASHIER'] { --role: var(--role-cashier); }
+
+.status {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+.status--on { color: #8fd0ab; }
+.status--off { color: var(--ink-faint); }
+
+.actions-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+thead .actions-col { display: table-cell; text-align: right; }
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: var(--ink-dim);
+  padding: 0.35rem;
+  border-radius: 3px;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.icon:hover:not(:disabled) {
+  color: var(--ember-lit);
+  background: rgba(217, 84, 30, 0.12);
+  border-color: rgba(217, 84, 30, 0.35);
+}
+/* Disabled here means "this would lock you out", so it must look unavailable rather than broken. */
+.icon:disabled { opacity: 0.3; cursor: not-allowed; }
+.icon--danger:hover:not(:disabled) { color: #ff8b66; }
+.icon--ok:hover:not(:disabled) {
+  color: #8fd0ab;
+  background: rgba(47, 107, 79, 0.16);
+  border-color: rgba(47, 107, 79, 0.45);
+}
+
+.foot {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  margin-top: 1.2rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed rgba(240, 220, 190, 0.12);
+}
+
+/* Dialog extras (overlay, dialog, dfield come from styles.css) */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.dfield--wide { grid-column: 1 / -1; }
+.hint { font-size: 0.72rem; color: var(--ink-faint); margin-top: 0.2rem; }
+.btn--danger { background: linear-gradient(180deg, #d5432a, #b0341f); }
+
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: 1fr; }
+}

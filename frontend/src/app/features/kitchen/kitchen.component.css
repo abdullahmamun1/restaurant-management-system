@@ -1,0 +1,203 @@
+/*
+ * Pass display: bigger type and higher contrast than the rest of the app on purpose — this screen
+ * is read across a kitchen, often at a glance, not leaned into like the waiter's builder.
+ */
+.pass {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.muted { color: var(--ink-faint); font-size: 0.9rem; }
+
+.pass__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.pass__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #f3e9dd;
+  margin: 0;
+}
+.pass__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+}
+.pass__count,
+.pass__link {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+/* Failing polls are a quiet aside, not an alarm — the last known queue is still on screen. */
+.pass__link--stale { color: var(--gold); }
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #f0e2c8;
+  background: rgba(198, 151, 73, 0.12);
+  border: 1px solid rgba(198, 151, 73, 0.45);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  margin: 1.1rem 0 0;
+}
+.notice__x {
+  margin-left: auto;
+  background: none; border: none; cursor: pointer; font: inherit;
+  color: var(--gold); text-decoration: underline;
+}
+
+/* ---- Empty state: good news, not an error ---- */
+.clear {
+  text-align: center;
+  padding: 4.5rem 1rem;
+  color: var(--ink-faint);
+}
+.clear__glyph {
+  display: block;
+  margin: 0 auto 0.6rem;
+  color: var(--role-waiter);
+}
+.clear__title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--ink-dim);
+  margin: 0 0 0.3rem;
+}
+.clear__sub { font-size: 0.88rem; margin: 0; }
+
+/* ---- Tickets ---- */
+.tickets {
+  list-style: none;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.ticket {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid rgba(240, 220, 190, 0.16);
+  border-left: 3px solid rgba(240, 220, 190, 0.28);
+  border-radius: 5px;
+  background: rgba(255, 244, 230, 0.035);
+}
+/* A ticket already on the stove is visually distinct from one still waiting to be started. */
+.ticket--cooking {
+  border-left-color: var(--ember);
+  background: rgba(217, 84, 30, 0.08);
+}
+
+.ticket__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.ticket__table {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #f7efe3;
+}
+/* Age badge: colour carries the triage signal so the oldest ticket is found without reading. */
+.ticket__age {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  padding: 0.18rem 0.45rem;
+  border-radius: 3px;
+  color: var(--ink-dim);
+  background: rgba(240, 220, 190, 0.08);
+}
+.ticket__age--warm { color: #f3dca8; background: rgba(198, 151, 73, 0.18); }
+.ticket__age--late { color: #ffd2bc; background: rgba(217, 84, 30, 0.24); }
+
+.ticket__status {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.ticket--cooking .ticket__status { color: var(--ember-lit); }
+.ticket__no { margin-left: auto; opacity: 0.7; }
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0.7rem 0 0;
+  border-top: 1px dashed rgba(240, 220, 190, 0.18);
+  display: grid;
+  gap: 0.5rem;
+}
+.line {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.line__qty {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.line__name {
+  font-size: 1.05rem;
+  color: #f2e8dc;
+  line-height: 1.25;
+}
+/* Guest notes are what gets missed on a busy pass, so they get colour and their own row. */
+.line__note {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+/* One primary action per ticket, sized for a thumb on a tablet (NFR-01). */
+.act {
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.75rem 0.9rem;
+  border-radius: 4px;
+  border: 1px solid rgba(198, 151, 73, 0.5);
+  background: rgba(198, 151, 73, 0.14);
+  color: #f3e3c4;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.act:hover:not(:disabled) { background: rgba(198, 151, 73, 0.24); border-color: var(--gold); }
+.act--ready {
+  border-color: rgba(217, 84, 30, 0.55);
+  background: rgba(217, 84, 30, 0.18);
+  color: #ffd9c7;
+}
+.act--ready:hover:not(:disabled) { background: rgba(217, 84, 30, 0.3); border-color: var(--ember); }
+.act:disabled { cursor: default; opacity: 0.6; }

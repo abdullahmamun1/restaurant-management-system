@@ -1,0 +1,67 @@
+<header class="appbar noprint">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Receipt</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/billing">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Back to the till
+  </a>
+</header>
+
+<main class="receipt-page">
+  @if (loading()) {
+    <p class="muted noprint">Fetching the receipt…</p>
+  } @else if (error()) {
+    <div class="halt noprint" role="alert">
+      <p class="halt__text">{{ error() }}</p>
+      <a class="btn btn--ghost btn--sm" routerLink="/billing">Back to the till</a>
+    </div>
+  } @else if (receipt()) {
+    <!-- Aliased in its own @if: Angular's control flow only allows `as` on a leading @if. -->
+    @if (receipt(); as r) {
+    <p class="settled noprint"><lucide-icon [img]="icons.ok" [size]="15"></lucide-icon> Paid — table {{ r.tableLabel }} is free again.</p>
+
+    <!-- FR-16: order id, table, date/time, items with quantity and unit price, and the totals. -->
+    <article class="slip">
+      <div class="slip__brand">
+        <span class="slip__mark">La Braise</span>
+        <span class="slip__sub">Dine-in</span>
+      </div>
+
+      <dl class="slip__meta">
+        <div><dt>Order</dt><dd>#{{ r.orderId }}</dd></div>
+        <div><dt>Table</dt><dd>{{ r.tableLabel }}</dd></div>
+        <div><dt>Date</dt><dd>{{ r.paidAt | date: 'medium' }}</dd></div>
+        <div><dt>Method</dt><dd>{{ r.method }}</dd></div>
+        <div><dt>Served by</dt><dd>{{ r.cashierUsername }}</dd></div>
+      </dl>
+
+      <ul class="slip__lines">
+        @for (line of r.items; track line.id) {
+          <li class="sline">
+            <span class="sline__qty">{{ line.quantity }}×</span>
+            <span class="sline__name">{{ line.menuItemName }}</span>
+            <span class="sline__unit">&#64; {{ line.unitPrice.toFixed(2) }}</span>
+            <span class="sline__total">{{ line.lineTotal.toFixed(2) }}</span>
+          </li>
+        }
+      </ul>
+
+      <dl class="slip__sums">
+        <div><dt>Subtotal</dt><dd>{{ r.subtotal.toFixed(2) }}</dd></div>
+        <div><dt>Tax</dt><dd>{{ r.taxAmount.toFixed(2) }}</dd></div>
+        <div><dt>Service charge</dt><dd>{{ r.serviceCharge.toFixed(2) }}</dd></div>
+        <div class="slip__grand"><dt>Total</dt><dd>{{ r.grandTotal.toFixed(2) }}</dd></div>
+      </dl>
+
+      <p class="slip__thanks">Thank you — please come again.</p>
+    </article>
+
+    <div class="receipt-page__actions noprint">
+      <button type="button" class="btn btn--sm" (click)="print()">Print receipt</button>
+      <a class="btn btn--ghost btn--sm" routerLink="/billing">Next table</a>
+    </div>
+    }
+  }
+</main>

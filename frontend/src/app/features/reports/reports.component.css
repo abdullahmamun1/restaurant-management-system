@@ -1,0 +1,311 @@
+/*
+ * The manager's dashboard: a ledger, not an analytics console. Figures are the loudest thing on
+ * the page, bars are drawn in CSS rather than by a charting library (M7 D10) — both visualisations
+ * are single-series ranked bars, which is the one chart a div with a percentage width renders
+ * perfectly, and it prints.
+ */
+.dash {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.muted { color: var(--ink-faint); font-size: 0.9rem; }
+.err {
+  color: var(--ember-lit);
+  font-size: 0.9rem;
+  border-left: 2px solid var(--ember);
+  padding-left: 0.7rem;
+}
+
+.dash__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+.dash__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #f3e9dd;
+  margin: 0;
+}
+.dash__zone {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ---- Range picker -------------------------------------------------------- */
+.range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg-2);
+  border: 1px solid rgba(198, 151, 73, 0.18);
+  border-radius: 4px;
+  margin-bottom: 1.4rem;
+}
+.range__presets { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid rgba(182, 164, 143, 0.25);
+  border-radius: 999px;
+  padding: 0.42rem 0.85rem;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--gold); color: #f3e9dd; }
+.chip--on {
+  background: rgba(198, 151, 73, 0.16);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.range__custom { display: flex; gap: 0.7rem; align-items: flex-end; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 0.25rem; }
+.field__label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.field input {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  color: #f3e9dd;
+  background: var(--bg);
+  border: 1px solid rgba(182, 164, 143, 0.25);
+  border-radius: 3px;
+  padding: 0.4rem 0.55rem;
+  color-scheme: dark;
+}
+.field input:focus { outline: none; border-color: var(--gold); }
+
+/* ---- Panels -------------------------------------------------------------- */
+.dash__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem;
+  align-items: start;
+}
+.panel {
+  background: var(--bg-2);
+  border: 1px solid rgba(198, 151, 73, 0.15);
+  border-radius: 4px;
+  padding: 1.1rem 1.2rem 1.3rem;
+}
+.panel--wide { grid-column: 1 / -1; }
+.panel--alert { border-color: rgba(217, 84, 30, 0.3); }
+
+.panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f3e9dd;
+  margin: 0 0 0.15rem;
+}
+.panel__title .btn { margin-left: auto; }
+.panel__note {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  margin: 0 0 0.9rem;
+}
+.sub {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 1.3rem 0 0.7rem;
+}
+
+/* ---- Headline figures ---------------------------------------------------- */
+.figures {
+  display: flex;
+  gap: 2.4rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0 0.2rem;
+}
+.figure { display: flex; flex-direction: column; gap: 0.2rem; }
+.figure__value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #f3e9dd;
+  font-variant-numeric: tabular-nums;
+}
+.figure--lead .figure__value { font-size: 2.3rem; color: var(--gold); }
+.figure__label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ---- Bars (CSS, no chart library — M7 D10) ------------------------------- */
+.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.85rem; }
+.bar__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+.bar__name { font-size: 0.92rem; color: #ece0d1; }
+.bar__figures {
+  display: flex;
+  gap: 0.9rem;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+.bar__qty { font-size: 0.75rem; color: var(--ink-faint); }
+.bar__amount { font-size: 0.92rem; color: #f3e9dd; }
+.bar__share {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--gold);
+  min-width: 3.2rem;
+  text-align: right;
+}
+.bar__track {
+  height: 8px;
+  background: rgba(182, 164, 143, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bar__track--slim { height: 5px; margin: 0.3rem 0; }
+.bar__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), #e0b467);
+  border-radius: 2px;
+}
+.bar__fill--alt { background: linear-gradient(90deg, var(--ember), var(--ember-lit)); }
+
+/* ---- The D3 reconciliation line ------------------------------------------
+   Not a footnote: the bars are item revenue only, and a manager who adds them up and finds they
+   fall short of the headline figure needs the arithmetic spelled out, not hidden in a tooltip. */
+.reconcile {
+  margin: 1.3rem 0 0;
+  padding: 0.75rem 0.9rem;
+  background: rgba(182, 164, 143, 0.06);
+  border-left: 2px solid rgba(198, 151, 73, 0.4);
+  border-radius: 0 3px 3px 0;
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+.reconcile b { color: #f3e9dd; font-weight: 600; }
+.reconcile__note {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+}
+
+/* ---- Low-stock alerts ---------------------------------------------------- */
+.alerts { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 0.5rem; }
+.alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.5rem 0.65rem;
+  background: rgba(217, 84, 30, 0.08);
+  border-left: 2px solid var(--ember);
+  border-radius: 0 3px 3px 0;
+}
+.alert__name { font-size: 0.9rem; color: #ece0d1; }
+.alert__nums {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+.alert__stock { color: var(--ember-lit); font-size: 0.95rem; }
+.alert__unit { font-size: 0.75rem; color: var(--ink-dim); }
+.alert__thr {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--ink-faint);
+  margin-left: 0.5rem;
+}
+
+/* ---- Ranked list --------------------------------------------------------- */
+.ranks { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.8rem; counter-reset: r; }
+.rank { display: flex; gap: 0.75rem; align-items: flex-start; }
+.rank__no {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  min-width: 1.3rem;
+  padding-top: 0.15rem;
+  text-align: right;
+}
+.rank__body { flex: 1; min-width: 0; }
+.rank__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+.rank__name {
+  font-size: 0.9rem;
+  color: #ece0d1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank__qty {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--ember-lit);
+  font-variant-numeric: tabular-nums;
+}
+.rank__meta { font-size: 0.72rem; color: var(--ink-faint); }
+
+/* ---- Empty states -------------------------------------------------------- */
+.empty, .clear {
+  text-align: center;
+  padding: 1.6rem 1rem;
+  color: var(--ink-faint);
+}
+.clear__glyph { color: var(--role-waiter); display: block; margin: 0 auto 0.4rem; }
+.empty__title, .clear__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink-dim);
+  margin: 0 0 0.25rem;
+}
+.empty__sub { font-size: 0.82rem; margin: 0; }
+
+@media (max-width: 900px) {
+  .dash__grid { grid-template-columns: minmax(0, 1fr); }
+  .range { flex-direction: column; align-items: stretch; }
+}
+
+/* ---- Print: a dashboard is the second thing anyone prints after a receipt. */
+@media print {
+  .appbar, .range, .btn { display: none; }
+  .dash { padding: 0; }
+  .panel { border-color: #999; break-inside: avoid; }
+  .dash__title, .figure__value, .bar__name, .bar__amount, .rank__name { color: #000; }
+  .bar__fill { background: #555; }
+}

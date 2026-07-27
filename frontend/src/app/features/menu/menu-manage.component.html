@@ -1,0 +1,225 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Menu Management</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="menu">
+  @if (error(); as e) {
+    <p class="banner" role="alert">
+      <lucide-icon [img]="icons.alert" [size]="15"></lucide-icon>
+      {{ e }}
+      <button class="banner__x" (click)="error.set(null)">dismiss</button>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading menu…</p>
+  } @else {
+    <div class="grid">
+      <!-- Categories rail -->
+      <aside class="rail">
+        <div class="rail__head">
+          <h2 class="rail__title">Categories</h2>
+          <button class="btn btn--sm" (click)="openCreateCategory()">+ New</button>
+        </div>
+
+        <button
+          class="cat"
+          [class.cat--active]="selectedCategoryId() === null"
+          (click)="selectCategory(null)">
+          <span>All items</span>
+          <span class="cat__count">{{ items().length }}</span>
+        </button>
+
+        @for (c of categories(); track c.id) {
+          <div class="cat" [class.cat--active]="selectedCategoryId() === c.id">
+            <button class="cat__pick" (click)="selectCategory(c.id)">{{ c.name }}</button>
+            <span class="cat__tools">
+              <button class="icon" title="Edit" aria-label="Edit category" (click)="openEditCategory(c)"><lucide-icon [img]="icons.edit" [size]="16"></lucide-icon></button>
+              <button class="icon icon--danger" title="Delete" aria-label="Delete category" (click)="askDeleteCategory(c)"><lucide-icon [img]="icons.delete" [size]="16"></lucide-icon></button>
+            </span>
+          </div>
+        }
+
+        @if (categories().length === 0) {
+          <p class="muted rail__empty">No categories yet. Create one to start adding items.</p>
+        }
+      </aside>
+
+      <!-- Items panel -->
+      <section class="items">
+        <div class="items__head">
+          <h2 class="items__title">
+            {{ selectedCategoryId() === null ? 'All items' : categoryName(selectedCategoryId()!) }}
+            <span class="items__count">{{ visibleItems().length }}</span>
+          </h2>
+          <button class="btn btn--sm" [disabled]="categories().length === 0" (click)="openCreateItem()">
+            + New item
+          </button>
+        </div>
+
+        @if (visibleItems().length === 0) {
+          <p class="muted">No items here yet.</p>
+        } @else {
+          <ul class="list">
+            @for (it of visibleItems(); track it.id) {
+              <li class="row" [class.row--off]="!it.available">
+                <div class="row__main">
+                  <div class="row__name">
+                    {{ it.name }}
+                    @if (!it.available) { <span class="tag tag--off">86'd</span> }
+                  </div>
+                  @if (it.description) { <p class="row__desc">{{ it.description }}</p> }
+                  <p class="row__meta">{{ it.categoryName }}</p>
+                </div>
+                <div class="row__price">${{ it.price.toFixed(2) }}</div>
+                <div class="row__actions">
+                  <button
+                    class="toggle"
+                    [class.toggle--on]="it.available"
+                    (click)="toggleAvailability(it)"
+                    [title]="it.available ? 'Mark unavailable' : 'Mark available'">
+                    <span class="toggle__dot"></span>
+                    {{ it.available ? 'Available' : 'Unavailable' }}
+                  </button>
+                  <button class="icon" title="Recipe" aria-label="Recipe" (click)="openRecipe(it)"><lucide-icon [img]="icons.recipe" [size]="16"></lucide-icon></button>
+                  <button class="icon" title="Edit" aria-label="Edit item" (click)="openEditItem(it)"><lucide-icon [img]="icons.edit" [size]="16"></lucide-icon></button>
+                  <button class="icon icon--danger" title="Delete" aria-label="Delete item" (click)="askDeleteItem(it)"><lucide-icon [img]="icons.delete" [size]="16"></lucide-icon></button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  }
+</main>
+
+<!-- Item dialog -->
+@if (itemDialog(); as d) {
+  <div class="overlay" (click)="closeDialogs()">
+    <form class="dialog" [formGroup]="itemForm" (ngSubmit)="saveItem()" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">{{ d.mode === 'create' ? 'New item' : 'Edit item' }}</h3>
+      <div class="form-grid">
+        <div class="dfield">
+          <label class="dfield__label" for="i-name">Name</label>
+          <input id="i-name" class="dfield__input" formControlName="name" />
+        </div>
+        <div class="dfield">
+          <label class="dfield__label" for="i-price">Price</label>
+          <input id="i-price" class="dfield__input" type="number" step="0.01" min="0" formControlName="price" />
+        </div>
+        <div class="dfield dfield--wide">
+          <label class="dfield__label" for="i-cat">Category</label>
+          <select id="i-cat" class="dfield__input" formControlName="categoryId">
+            @for (c of categories(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="dfield dfield--wide">
+          <label class="dfield__label" for="i-desc">Description (optional)</label>
+          <textarea id="i-desc" class="dfield__input" rows="2" formControlName="description"></textarea>
+        </div>
+        <label class="check dfield--wide">
+          <input type="checkbox" formControlName="available" />
+          <span>Available to order</span>
+        </label>
+      </div>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="submit" class="btn btn--sm" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- Category dialog -->
+@if (categoryDialog(); as d) {
+  <div class="overlay" (click)="closeDialogs()">
+    <form class="dialog" [formGroup]="categoryForm" (ngSubmit)="saveCategory()" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">{{ d.mode === 'create' ? 'New category' : 'Edit category' }}</h3>
+      <div class="form-grid">
+        <div class="dfield dfield--wide">
+          <label class="dfield__label" for="c-name">Name</label>
+          <input id="c-name" class="dfield__input" formControlName="name" />
+        </div>
+        <div class="dfield">
+          <label class="dfield__label" for="c-sort">Sort order</label>
+          <input id="c-sort" class="dfield__input" type="number" min="0" formControlName="sortOrder" />
+        </div>
+      </div>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="submit" class="btn btn--sm" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- Recipe dialog -->
+@if (recipeItem(); as item) {
+  <div class="overlay" (click)="closeDialogs()">
+    <div class="dialog dialog--wide" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">Recipe — {{ item.name }}</h3>
+      @if (ingredients().length === 0) {
+        <p class="muted">No ingredients exist yet. Add ingredients in Inventory first.</p>
+      } @else {
+        <p class="muted recipe__hint">Ingredients consumed per one {{ item.name }}. Used for stock checks and deduction.</p>
+        <ul class="recipe">
+          @for (line of recipeLines(); track $index) {
+            <li class="recipe__row">
+              <select class="dfield__input"
+                      (change)="setLineIngredient($index, +$any($event.target).value)">
+                @for (ing of ingredients(); track ing.id) {
+                  <option [value]="ing.id" [selected]="ing.id === line.ingredientId">{{ ing.name }}</option>
+                }
+              </select>
+              <input class="dfield__input recipe__qty" type="number" min="0" step="0.001"
+                     [value]="line.quantity"
+                     (input)="setLineQuantity($index, +$any($event.target).value)" />
+              <span class="recipe__unit">{{ unitFor(line.ingredientId) }}</span>
+              <button class="icon icon--danger" title="Remove" aria-label="Remove line" (click)="removeRecipeLine($index)"><lucide-icon [img]="icons.close" [size]="15"></lucide-icon></button>
+            </li>
+          }
+          @if (recipeLines().length === 0) {
+            <li class="muted recipe__empty">No ingredients mapped yet.</li>
+          }
+        </ul>
+        <button type="button" class="btn btn--ghost btn--sm" (click)="addRecipeLine()">+ Add ingredient</button>
+      }
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="button" class="btn btn--sm" [disabled]="saving() || ingredients().length === 0" (click)="saveRecipe()">
+          {{ saving() ? 'Saving…' : 'Save recipe' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Confirm dialog -->
+@if (confirm(); as c) {
+  <div class="overlay" (click)="closeDialogs()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">Confirm</h3>
+      <p class="muted">{{ c.message }}</p>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button class="btn btn--sm btn--danger" [disabled]="saving()" (click)="runConfirm()">
+          {{ saving() ? 'Working…' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

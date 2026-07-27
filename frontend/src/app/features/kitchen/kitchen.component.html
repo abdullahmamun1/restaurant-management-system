@@ -1,0 +1,91 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Kitchen Queue</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="pass">
+  <div class="pass__head">
+    <h1 class="pass__title">The Pass</h1>
+    <div class="pass__meta">
+      <span class="pass__count">
+        {{ ticketCount() }} on · {{ cooking() }} cooking
+      </span>
+      <!-- Freshness instead of a spinner: a spinner on a 2 s poll flickers permanently. -->
+      @if (stale()) {
+        <span class="pass__link pass__link--stale">reconnecting…</span>
+      } @else {
+        <span class="pass__link">updated {{ secondsSinceUpdate() }}s ago</span>
+      }
+    </div>
+  </div>
+
+  @if (notice(); as n) {
+    <p class="notice" role="status">
+      {{ n }}
+      <button class="notice__x" (click)="notice.set(null)">dismiss</button>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Reading the queue…</p>
+  } @else if (ticketCount() === 0) {
+    <div class="clear">
+      <lucide-icon class="clear__glyph" [img]="icons.ok" [size]="26"></lucide-icon>
+      <p class="clear__title">All caught up</p>
+      <p class="clear__sub">No tickets waiting. New orders appear here on their own.</p>
+    </div>
+  } @else {
+    <!-- Announced politely so a cook who is not looking at the screen still hears a new ticket. -->
+    <ul class="tickets" aria-live="polite">
+      @for (t of tickets(); track t.id) {
+        <li
+          class="ticket"
+          [class.ticket--cooking]="t.status === 'PREPARING'">
+          <div class="ticket__head">
+            <span class="ticket__table">{{ t.tableLabel }}</span>
+            <span
+              class="ticket__age"
+              [class.ticket__age--warm]="ageBand(t) === 'warm'"
+              [class.ticket__age--late]="ageBand(t) === 'late'"
+              [attr.aria-label]="'waiting ' + ageLabel(t)">
+              {{ ageLabel(t) }}
+            </span>
+          </div>
+
+          <div class="ticket__status">
+            @if (t.status === 'PREPARING') { on the stove } @else { waiting }
+            <span class="ticket__no">#{{ t.id }}</span>
+          </div>
+
+          <ul class="lines">
+            @for (line of t.items; track $index) {
+              <li class="line">
+                <span class="line__qty">{{ line.quantity }}×</span>
+                <span class="line__name">{{ line.menuItemName }}</span>
+                <!-- Notes are the thing that gets missed, so they get their own emphasis. -->
+                @if (line.notes) {
+                  <span class="line__note">{{ line.notes }}</span>
+                }
+              </li>
+            }
+          </ul>
+
+          <button
+            type="button"
+            class="act"
+            [class.act--ready]="t.status === 'PREPARING'"
+            [disabled]="busyTicketId() === t.id"
+            (click)="t.status === 'CONFIRMED' ? start(t) : finish(t)">
+            @if (busyTicketId() === t.id) { working… } @else { {{ actionLabel(t) }} }
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</main>

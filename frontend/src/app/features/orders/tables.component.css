@@ -1,0 +1,172 @@
+.floor {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.muted { color: var(--ink-faint); font-size: 0.9rem; }
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #ffd9c7;
+  background: rgba(217, 84, 30, 0.14);
+  border: 1px solid rgba(217, 84, 30, 0.5);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 1.2rem;
+}
+.banner__x {
+  margin-left: auto;
+  background: none; border: none; cursor: pointer; font: inherit;
+  color: var(--ember-lit); text-decoration: underline;
+}
+
+.floor__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.floor__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #f3e9dd;
+  margin: 0;
+}
+.floor__count {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.floor__hint {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  margin: 0.3rem 0 1.5rem;
+}
+
+/* Floor grid: each table is a card that reads at a glance by colour. */
+.tables {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.9rem;
+}
+.tables li { display: grid; gap: 0.35rem; }
+
+.tbl {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  padding: 1rem 1rem 1.1rem;
+  border: 1px solid rgba(240, 220, 190, 0.16);
+  border-left-width: 3px;
+  border-radius: 5px;
+  background: rgba(255, 244, 230, 0.035);
+  color: var(--ink-dim);
+  transition: transform 0.15s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.tbl:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(255, 244, 230, 0.06);
+}
+.tbl:disabled { cursor: default; opacity: 0.75; }
+
+.tbl__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: #f5ece0;
+}
+.tbl__seats,
+.tbl__line {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.tbl__order {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ---- Order-status pill ----------------------------------------------------
+   The order's progress, distinct from the table's own state above it. Same colour vocabulary as
+   the pill on the order screen, so a status means the same thing wherever a waiter sees it. */
+.opill {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.16rem 0.42rem;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  line-height: 1;
+}
+.opill--pending   { color: var(--ember-lit); }
+.opill--confirmed { color: var(--gold); }
+.opill--preparing { color: var(--role-kitchen); }
+.opill--ready     { color: #a9e0c1; }
+.opill--served    { color: #a9e0c1; }
+.opill--paid      { color: var(--ink-faint); }
+
+/* READY is the one that needs the waiter on their feet, so it is the only filled badge — a
+   colour difference alone is too easy to miss across a grid of eight cards. */
+.opill--ready {
+  color: #0f2019;
+  background: #a9e0c1;
+  border-color: #a9e0c1;
+}
+.tbl__status {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Status colours: green = seatable, ember = working, gold = flagged. */
+.tbl--free { border-left-color: var(--role-waiter); }
+.tbl--free .tbl__status { color: #a9e0c1; }
+.tbl--free:hover:not(:disabled) { border-color: var(--role-waiter); }
+
+.tbl--busy { border-left-color: var(--ember); }
+.tbl--busy .tbl__status { color: var(--ember-lit); }
+.tbl--busy:hover:not(:disabled) { border-color: var(--ember); }
+
+.tbl--service {
+  border-left-color: var(--gold);
+  background: rgba(198, 151, 73, 0.09);
+}
+.tbl--service .tbl__status { color: var(--gold); }
+.tbl--service:hover:not(:disabled) { border-color: var(--gold); }
+
+.flag {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid rgba(240, 220, 190, 0.14);
+  border-radius: 3px;
+  background: none;
+  color: var(--ink-faint);
+}
+.flag:hover:not(:disabled) { color: var(--gold); border-color: rgba(198, 151, 73, 0.5); }
+.flag--on { color: var(--gold); border-color: rgba(198, 151, 73, 0.5); }
+.flag:disabled { cursor: default; opacity: 0.5; }

@@ -1,0 +1,176 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Billing &amp; Payment</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="till">
+  <div class="till__head">
+    <h1 class="till__title">The Till</h1>
+    <span class="till__count">
+      {{ waitingCount() }} table(s) waiting
+      @if (!canSettle()) { · read-only }
+    </span>
+  </div>
+
+  @if (problem(); as p) {
+    <!--
+      Not a dismissible banner: a refusal here means the money was not taken. The shortfall case
+      additionally says who can unblock it, because the cashier cannot — there are no refunds or
+      cancellations to fall back on.
+    -->
+    <div class="halt" role="alert" [class.halt--restock]="needsRestock()">
+      <lucide-icon class="halt__mark" [img]="needsRestock() ? icons.blocked : icons.alert" [size]="18"></lucide-icon>
+      <div>
+        <p class="halt__text">{{ p }}</p>
+        @if (needsRestock()) {
+          <p class="halt__next">
+            Nothing was charged and nothing was deducted — the table is still open. A manager needs
+            to restock this ingredient before the bill can be settled.
+          </p>
+        }
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Opening the till…</p>
+  } @else {
+    <div class="till__grid">
+      <!-- Step 1 — pick the table. -->
+      <section class="queue" aria-label="Tables waiting to pay">
+        @if (waitingCount() === 0) {
+          <div class="clear">
+            <lucide-icon class="clear__glyph" [img]="icons.ok" [size]="26"></lucide-icon>
+            <p class="clear__title">Nothing to settle</p>
+            <p class="clear__sub">Tables appear here once their order has been served.</p>
+          </div>
+        } @else {
+          <ul class="waiting">
+            @for (o of payable(); track o.orderId) {
+              <li>
+                <button
+                  type="button"
+                  class="tab"
+                  [class.tab--open]="bill()?.orderId === o.orderId"
+                  (click)="open(o)">
+                  <span class="tab__table">{{ o.tableLabel }}</span>
+                  <span class="tab__meta">
+                    {{ o.itemCount }} line(s) · {{ waitingLabel(o) }}
+                  </span>
+                  <span class="tab__total">{{ o.grandTotal.toFixed(2) }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Steps 2 and 3 — the bill, the method, the confirmation. -->
+      <section class="check" aria-label="Bill">
+        @if (opening()) {
+          <p class="muted">Drawing up the bill…</p>
+        } @else if (bill()) {
+          <!-- Aliased in its own @if: Angular's control flow only allows `as` on a leading @if. -->
+          @if (bill(); as b) {
+          <div class="paper">
+            <div class="paper__head">
+              <span class="paper__table">Table {{ b.tableLabel }}</span>
+              <span class="paper__no">order #{{ b.orderId }}</span>
+            </div>
+
+            <!-- FR-13: every ordered item with quantity and per-item price. -->
+            <ul class="lines">
+              @for (line of b.items; track line.id) {
+                <li class="line">
+                  <span class="line__qty">{{ line.quantity }}×</span>
+                  <span class="line__name">
+                    {{ line.menuItemName }}
+                    @if (line.notes) { <em class="line__note">{{ line.notes }}</em> }
+                  </span>
+                  <span class="line__unit">{{ line.unitPrice.toFixed(2) }} ea</span>
+                  <span class="line__total">{{ line.lineTotal.toFixed(2) }}</span>
+                </li>
+              }
+            </ul>
+
+            <!-- FR-14: subtotal, each charge by name, grand total. All computed server-side. -->
+            <dl class="sums">
+              <div class="sums__row">
+                <dt>Subtotal</dt>
+                <dd>{{ b.subtotal.toFixed(2) }}</dd>
+              </div>
+              @for (c of b.charges; track c.label) {
+                <div class="sums__row">
+                  <dt>{{ c.label }}</dt>
+                  <dd>{{ c.amount.toFixed(2) }}</dd>
+                </div>
+              }
+              <div class="sums__row sums__row--total">
+                <dt>Total</dt>
+                <dd>{{ b.grandTotal.toFixed(2) }}</dd>
+              </div>
+            </dl>
+          </div>
+
+          @if (canSettle()) {
+            <div class="settle">
+              <p class="settle__label">How is it being paid?</p>
+              <div class="methods" role="group" aria-label="Payment method">
+                @for (m of methods; track m) {
+                  <button
+                    type="button"
+                    class="method"
+                    [class.method--on]="method() === m"
+                    [attr.aria-pressed]="method() === m"
+                    [disabled]="settling()"
+                    (click)="choose(m)">
+                    {{ m }}
+                  </button>
+                }
+              </div>
+
+              <!--
+                The one irreversible control in the app: it states the amount, not just the action,
+                and dies on the first press so a double-tap cannot fire it twice.
+              -->
+              <button
+                type="button"
+                class="take"
+                [disabled]="!canConfirm()"
+                (click)="confirm()">
+                @if (settling()) {
+                  Settling…
+                } @else if (method()) {
+                  Take {{ b.grandTotal.toFixed(2) }} · {{ method() }}
+                } @else {
+                  Choose a payment method
+                }
+              </button>
+              <p class="settle__warn">
+                Once confirmed the order is closed. There are no refunds or changes afterwards.
+              </p>
+            </div>
+          } @else {
+            <p class="settle__ro">
+              Read-only view. Only a cashier can record payment.
+            </p>
+          }
+
+          <button type="button" class="btn btn--ghost btn--sm" (click)="close()">Close bill</button>
+          }
+        } @else {
+          <div class="idle">
+            <p class="idle__title">No bill open</p>
+            <p class="idle__sub">Choose a table on the left to draw up its bill.</p>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</main>

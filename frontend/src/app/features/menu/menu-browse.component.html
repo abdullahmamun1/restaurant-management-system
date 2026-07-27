@@ -1,0 +1,37 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Menu</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="browse">
+  @if (loading()) {
+    <p class="muted">Loading menu…</p>
+  } @else if (groups().length === 0) {
+    <p class="muted">The menu is empty. Ask a manager to add categories and items.</p>
+  } @else {
+    @for (g of groups(); track g.category.id) {
+      <section class="course">
+        <h2 class="course__title">{{ g.category.name }}</h2>
+        <ul class="dishes">
+          @for (it of g.items; track it.id) {
+            <li class="dish" [class.dish--off]="!it.available">
+              <div class="dish__head">
+                <span class="dish__name">{{ it.name }}</span>
+                <span class="dish__dots"></span>
+                <span class="dish__price">${{ it.price.toFixed(2) }}</span>
+              </div>
+              @if (it.description) { <p class="dish__desc">{{ it.description }}</p> }
+              @if (!it.available) { <span class="dish__off">Unavailable · 86'd</span> }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</main>

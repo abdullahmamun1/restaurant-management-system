@@ -1,0 +1,24 @@
+# --- Backend (Maven / Java) ---
+backend/target/
+*.class
+
+# --- Frontend (Angular / Node) ---
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/npm-debug.log*
+
+# --- IDE / OS ---
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# --- Env / secrets ---
+*.env
+.env.local
+
+# Local backend config holding NeonDB credentials (never commit)
+backend/src/main/resources/application-local.yml

@@ -1,0 +1,184 @@
+.pass {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+/* ---- Top rail ---------------------------------------------------------- */
+.rail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0 1.4rem;
+  border-bottom: 1px dashed rgba(240, 220, 190, 0.18);
+}
+
+.rail__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+.rail__mark {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: #f3e9dd;
+  letter-spacing: -0.01em;
+}
+.rail__tag {
+  color: var(--ink-faint);
+}
+
+.rail__end {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  padding: 0.35rem 0.6rem;
+  border-radius: 2px;
+  color: #fff;
+  background: var(--role, #555);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+.badge[data-role='MANAGER'] { --role: var(--role-manager); }
+.badge[data-role='WAITER']  { --role: var(--role-waiter); }
+.badge[data-role='KITCHEN'] { --role: var(--role-kitchen); }
+.badge[data-role='CASHIER'] { --role: var(--role-cashier); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink-dim);
+  box-shadow: inset 0 0 0 1px rgba(240, 220, 190, 0.22);
+  padding: 0.6rem 1rem;
+}
+.btn--ghost:hover:not(:disabled) {
+  color: #fff5ec;
+  box-shadow: inset 0 0 0 1px var(--ember);
+  transform: translateY(-1px);
+  filter: none;
+}
+
+/* ---- Greeting ---------------------------------------------------------- */
+.hello {
+  padding: 3rem 0 2.5rem;
+  animation: rise 0.6s ease both 0.05s;
+}
+.hello__eyebrow {
+  color: var(--ember-lit);
+  margin: 0 0 1rem;
+}
+.hello__title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 1.05;
+  color: #f5ece0;
+  margin: 0;
+}
+.hello__title em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--gold);
+}
+.hello__sub {
+  color: var(--ink-faint);
+  margin: 1rem 0 0;
+  font-size: 1rem;
+}
+
+/* ---- Stations ---------------------------------------------------------- */
+.stations {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.station {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.4rem;
+  background: linear-gradient(180deg, rgba(255, 244, 230, 0.04), rgba(255, 244, 230, 0.015));
+  border: 1px solid rgba(240, 220, 190, 0.12);
+  border-radius: 4px;
+  animation: rise 0.6s ease both 0.15s;
+  transition: transform 0.16s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.station:hover {
+  transform: translateY(-3px);
+  border-color: rgba(217, 84, 30, 0.55);
+  background: linear-gradient(180deg, rgba(255, 244, 230, 0.06), rgba(255, 244, 230, 0.02));
+}
+
+/* Lucide strokes inherit currentColor, so the ember tint is set here rather than per icon. */
+.station__glyph {
+  display: block;
+  flex: none;
+  color: var(--ember-lit);
+  margin-top: 0.1rem;
+}
+.station:hover .station__glyph { color: var(--gold); }
+.station__title {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #f3e9dd;
+  margin: 0 0 0.25rem;
+}
+.station__desc {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  margin: 0;
+  line-height: 1.4;
+}
+.station__soon {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid rgba(240, 220, 190, 0.15);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+
+/* Live (clickable) station */
+.station--live {
+  text-decoration: none;
+  cursor: pointer;
+  color: var(--ink-dim);
+}
+/*
+ * The title and description keep their own colours (set above). They used to be `color: inherit`,
+ * which inherited the *anchor's* colour — and since this element set none, that was the browser's
+ * default link blue, turning permanently purple once visited. The global `a` reset in styles.css
+ * now prevents that class of bug everywhere; this rule stays gone deliberately.
+ */
+.station__go {
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  color: var(--ember-lit);
+  font-size: 1.1rem;
+  transition: transform 0.16s ease;
+}
+.station--live:hover .station__go {
+  transform: translateX(4px);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

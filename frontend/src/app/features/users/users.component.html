@@ -1,0 +1,203 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">User Management</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="staff">
+  @if (error(); as e) {
+    <p class="banner" role="alert">
+      <lucide-icon [img]="icons.alert" [size]="15"></lucide-icon>
+      {{ e }}
+      <button class="banner__x" (click)="error.set(null)">dismiss</button>
+    </p>
+  }
+  @if (notice(); as n) {
+    <p class="banner banner--ok" role="status">
+      <lucide-icon [img]="icons.enable" [size]="15"></lucide-icon>
+      {{ n }}
+      <button class="banner__x" (click)="notice.set(null)">dismiss</button>
+    </p>
+  }
+
+  <div class="staff__head">
+    <div>
+      <h1 class="staff__title">Staff</h1>
+      <p class="staff__sub">
+        Every account is created here — staff cannot sign themselves up.
+      </p>
+    </div>
+    <button class="btn btn--sm" (click)="openCreate()">
+      <lucide-icon [img]="icons.add" [size]="15"></lucide-icon>
+      New account
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="muted">Loading staff…</p>
+  } @else if (rows().length === 0) {
+    <p class="muted">No accounts yet.</p>
+  } @else {
+    <table class="grid">
+      <colgroup>
+        <col class="col--person" />
+        <col class="col--role" />
+        <col class="col--status" />
+        <col class="col--actions" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (u of rows(); track u.id) {
+          <tr [class.row--off]="!u.enabled">
+            <td>
+              <span class="person">
+                <span class="person__name">{{ u.fullName }}</span>
+                <span class="person__user">
+                  {{ u.username }}
+                  @if (isSelf(u)) { <span class="tag tag--you">you</span> }
+                </span>
+              </span>
+            </td>
+            <td><span class="role" [attr.data-role]="u.role">{{ u.role }}</span></td>
+            <td>
+              @if (u.enabled) {
+                <span class="status status--on">Active</span>
+              } @else {
+                <span class="status status--off">Retired</span>
+              }
+            </td>
+            <td class="actions-col">
+              <button class="icon" title="Edit name & role" aria-label="Edit" (click)="openEdit(u)">
+                <lucide-icon [img]="icons.edit" [size]="16"></lucide-icon>
+              </button>
+              <button class="icon" title="Reset password" aria-label="Reset password" (click)="openPassword(u)">
+                <lucide-icon [img]="icons.password" [size]="16"></lucide-icon>
+              </button>
+              @if (u.enabled) {
+                <button
+                  class="icon icon--danger"
+                  [title]="disableBlockedReason(u) ?? 'Disable sign-in'"
+                  [attr.aria-label]="'Disable ' + u.username"
+                  [disabled]="disableBlockedReason(u) !== null || saving()"
+                  (click)="askDisable(u)">
+                  <lucide-icon [img]="icons.disable" [size]="16"></lucide-icon>
+                </button>
+              } @else {
+                <button
+                  class="icon icon--ok"
+                  title="Restore sign-in"
+                  [attr.aria-label]="'Enable ' + u.username"
+                  [disabled]="saving()"
+                  (click)="enable(u)">
+                  <lucide-icon [img]="icons.enable" [size]="16"></lucide-icon>
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <p class="foot">
+      Accounts are retired, never deleted — staff names stay attached to the orders they took and
+      the payments they settled.
+    </p>
+  }
+</main>
+
+<!-- Create / edit dialog -->
+@if (userDialog(); as d) {
+  <div class="overlay" (click)="closeDialogs()">
+    <form class="dialog" [formGroup]="userForm" (ngSubmit)="saveUser()" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">{{ d.mode === 'create' ? 'New account' : 'Edit account' }}</h3>
+
+      <div class="form-grid">
+        <div class="dfield">
+          <label class="dfield__label" for="u-username">Username</label>
+          <input id="u-username" class="dfield__input" formControlName="username" autocomplete="off" />
+          @if (d.mode === 'edit') {
+            <span class="hint">A username identifies this person on past records and cannot change.</span>
+          }
+        </div>
+        <div class="dfield">
+          <label class="dfield__label" for="u-role">Role</label>
+          <select id="u-role" class="dfield__input" formControlName="role">
+            @for (r of roles; track r) { <option [value]="r">{{ r }}</option> }
+          </select>
+        </div>
+        <div class="dfield dfield--wide">
+          <label class="dfield__label" for="u-fullname">Full name</label>
+          <input id="u-fullname" class="dfield__input" formControlName="fullName" />
+        </div>
+        @if (d.mode === 'create') {
+          <div class="dfield dfield--wide">
+            <label class="dfield__label" for="u-password">Temporary password</label>
+            <input id="u-password" class="dfield__input" type="password" formControlName="password" autocomplete="new-password" />
+            <span class="hint">At least 8 characters. Give it to them directly and reset it later if needed.</span>
+          </div>
+        }
+      </div>
+
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="submit" class="btn btn--sm" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- Password reset dialog -->
+@if (passwordTarget(); as t) {
+  <div class="overlay" (click)="closeDialogs()">
+    <form class="dialog" [formGroup]="passwordForm" (ngSubmit)="savePassword()" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">Reset password — {{ t.username }}</h3>
+      <p class="muted">
+        The current password is not needed. {{ t.fullName }} will use whatever you set here the next
+        time they sign in.
+      </p>
+      <div class="form-grid">
+        <div class="dfield dfield--wide">
+          <label class="dfield__label" for="p-password">New password</label>
+          <input id="p-password" class="dfield__input" type="password" formControlName="password" autocomplete="new-password" />
+          <span class="hint">At least 8 characters.</span>
+        </div>
+      </div>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="submit" class="btn btn--sm" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Set password' }}
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- Confirm dialog -->
+@if (confirm(); as c) {
+  <div class="overlay" (click)="closeDialogs()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">{{ c.title }}</h3>
+      <p class="muted">{{ c.message }}</p>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button class="btn btn--sm btn--danger" [disabled]="saving()" (click)="runConfirm()">
+          {{ saving() ? 'Working…' : c.cta }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

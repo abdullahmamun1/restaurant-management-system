@@ -1,0 +1,279 @@
+.ord {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.muted { color: var(--ink-faint); font-size: 0.9rem; }
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #ffd9c7;
+  background: rgba(217, 84, 30, 0.14);
+  border: 1px solid rgba(217, 84, 30, 0.5);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 1.2rem;
+}
+.banner--ok {
+  color: #c9ecd8;
+  background: rgba(47, 107, 79, 0.18);
+  border-color: rgba(47, 107, 79, 0.6);
+}
+.banner__x {
+  margin-left: auto;
+  background: none; border: none; cursor: pointer; font: inherit;
+  color: var(--ember-lit); text-decoration: underline;
+}
+.banner--ok .banner__x { color: #a9e0c1; }
+
+.ord__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.ord__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.6rem;
+  color: #f3e9dd;
+  margin: 0;
+}
+.ord__meta {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0.3rem 0 0;
+}
+
+/* Status stamp — colour tracks how far along the lifecycle the order is. */
+.pill {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.pill--pending   { color: var(--ember-lit); }
+.pill--confirmed { color: var(--gold); }
+.pill--preparing { color: var(--role-kitchen); }
+.pill--ready     { color: #a9e0c1; }
+.pill--served    { color: #a9e0c1; }
+.pill--paid      { color: var(--ink-faint); }
+
+.locked {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--gold);
+  background: rgba(198, 151, 73, 0.1);
+  border: 1px solid rgba(198, 151, 73, 0.35);
+  border-radius: 4px;
+  padding: 0.7rem 0.9rem;
+  margin: 0 0 1.4rem;
+}
+
+.ord__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ---- Ticket: a cream guest-check against the dark room ---- */
+.ticket {
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  color: var(--paper-ink);
+  border-radius: 4px;
+  box-shadow: var(--shadow-lift);
+  padding: 1.3rem 1.2rem 1.4rem;
+  position: sticky;
+  top: 1rem;
+}
+.ticket__title,
+.picker__title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  margin: 0 0 1rem;
+}
+.ticket__title { color: var(--paper-mute); }
+.picker__title { color: var(--ink-faint); }
+.ticket .muted { color: var(--paper-mute); }
+
+.lines { list-style: none; margin: 0; padding: 0; }
+.line {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed var(--paper-line);
+}
+.line__qty {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--paper-ink);
+}
+
+/* ---- Quantity stepper ----------------------------------------------------
+   Sits where the "3×" used to, so the ticket keeps its shape whether or not the order is still
+   editable. The count is a fixed width in tabular figures: without that, going 9 -> 10 widened
+   the control and nudged every dish name on the ticket sideways. */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 0.1rem;
+  background: rgba(255, 255, 255, 0.5);
+}
+.stepper__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper-mute);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.stepper__btn:hover:not(:disabled) { background: rgba(42, 33, 25, 0.1); color: var(--paper-ink); }
+.stepper__btn:disabled { opacity: 0.4; cursor: progress; }
+.stepper__qty {
+  min-width: 1.4rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper-ink);
+}
+.line__body { display: grid; gap: 0.15rem; }
+.line__name { font-weight: 600; }
+.line__notes { font-size: 0.8rem; font-style: italic; color: var(--paper-mute); }
+.line__unit {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--paper-mute);
+}
+.line__total { font-family: var(--font-mono); font-weight: 600; }
+.line__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--paper-mute);
+  padding: 0.25rem;
+  border-radius: 3px;
+}
+.line__x:hover:not(:disabled) { color: #b0341f; background: rgba(176, 52, 31, 0.1); }
+.line__x:disabled { opacity: 0.4; cursor: progress; }
+.line__x--off { width: 1.1rem; }
+
+.totals {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 2px solid var(--paper-ink);
+}
+.totals__label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.totals__count {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--paper-mute);
+}
+.totals__value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+.totals__note {
+  font-size: 0.72rem;
+  color: var(--paper-mute);
+  margin: 0.4rem 0 0;
+}
+
+.ticket__actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.3rem;
+}
+.await {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--paper-mute);
+  margin: 0;
+}
+
+/* ---- Picker ---- */
+.course { margin-bottom: 1.4rem; }
+.course__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #f3e9dd;
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed rgba(240, 220, 190, 0.18);
+}
+.dishes { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.dish {
+  padding: 0.7rem 0.8rem;
+  background: rgba(255, 244, 230, 0.035);
+  border: 1px solid rgba(240, 220, 190, 0.12);
+  border-radius: 4px;
+}
+.dish__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.dish__name { color: #f3e9dd; font-weight: 600; }
+.dish__price { font-family: var(--font-mono); color: var(--gold); font-size: 0.9rem; }
+.dish__controls {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+.qty { text-align: center; }
+.notes { font-size: 0.85rem; }
+
+@media (max-width: 860px) {
+  .ord__grid { grid-template-columns: 1fr; }
+  .ticket { position: static; }
+}
+@media (max-width: 520px) {
+  .dish__controls { grid-template-columns: 4.5rem 1fr; }
+  .dish__controls .btn { grid-column: 1 / -1; }
+}

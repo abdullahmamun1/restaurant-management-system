@@ -1,0 +1,184 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Reports &amp; Alerts</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="dash">
+  <div class="dash__head">
+    <h1 class="dash__title">The Book</h1>
+    @if (sales(); as s) {
+      <span class="dash__zone">dates in {{ s.zone }}</span>
+    }
+  </div>
+
+  <!-- ---- Range picker: presets first, because they answer the common questions in one tap. -->
+  <section class="range" aria-label="Date range">
+    <div class="range__presets" role="group" aria-label="Quick ranges">
+      @for (p of [{ k: 'today', l: 'Today' }, { k: 'week', l: 'Last 7 days' }, { k: 'month', l: 'This month' }]; track p.k) {
+        <button
+          type="button"
+          class="chip"
+          [class.chip--on]="preset() === p.k"
+          [attr.aria-pressed]="preset() === p.k"
+          (click)="applyPreset($any(p.k))">
+          {{ p.l }}
+        </button>
+      }
+    </div>
+    <div class="range__custom">
+      <label class="field">
+        <span class="field__label">From</span>
+        <input type="date" [value]="from()" (change)="onFromChange($any($event.target).value)" />
+      </label>
+      <label class="field">
+        <span class="field__label">To</span>
+        <input type="date" [value]="to()" (change)="onToChange($any($event.target).value)" />
+      </label>
+      <button type="button" class="btn btn--sm" (click)="reloadRange()">Run</button>
+    </div>
+  </section>
+
+  <div class="dash__grid">
+    <!-- ---- FR-23: sales summary + category breakdown ---------------------- -->
+    <section class="panel panel--wide" aria-label="Sales summary">
+      <h2 class="panel__title">Sales</h2>
+
+      @if (salesLoading()) {
+        <p class="muted">Adding up…</p>
+      } @else if (salesError()) {
+        <p class="err" role="alert">{{ salesError() }}</p>
+      } @else if (sales()) {
+        <!-- Aliased in its own @if: Angular's control flow only allows `as` on a leading @if. -->
+        @if (sales(); as s) {
+        <div class="figures">
+          <div class="figure figure--lead">
+            <span class="figure__value">{{ money(s.totalRevenue) }}</span>
+            <span class="figure__label">Total revenue</span>
+          </div>
+          <div class="figure">
+            <span class="figure__value">{{ s.ordersCompleted }}</span>
+            <span class="figure__label">Orders completed</span>
+          </div>
+        </div>
+
+        @if (!hasSales()) {
+          <div class="empty">
+            <p class="empty__title">No sales in this range</p>
+            <p class="empty__sub">Nothing was settled between {{ s.from }} and {{ s.to }}.</p>
+          </div>
+        } @else {
+          <h3 class="sub">Revenue from items, by category</h3>
+
+          <ul class="bars">
+            @for (c of s.categoryBreakdown; track c.categoryId) {
+              <li class="bar">
+                <div class="bar__head">
+                  <span class="bar__name">{{ c.categoryName }}</span>
+                  <span class="bar__figures">
+                    <span class="bar__qty">{{ c.quantitySold }} sold</span>
+                    <span class="bar__amount">{{ money(c.revenue) }}</span>
+                    <span class="bar__share">{{ pct(c.shareOfItemRevenue) }}%</span>
+                  </span>
+                </div>
+                <div class="bar__track">
+                  <div class="bar__fill" [style.width.%]="c.shareOfItemRevenue"></div>
+                </div>
+              </li>
+            }
+          </ul>
+
+          <!--
+            M7 D3: the bars are item revenue only — tax and service charge are computed on the
+            order's subtotal and no category owns a share of them. Without this line, the first
+            manager to add up the bars files a bug against a correct system.
+          -->
+          <p class="reconcile">
+            Items <b>{{ money(s.itemRevenue) }}</b>
+            + Tax <b>{{ money(s.taxTotal) }}</b>
+            + Service <b>{{ money(s.serviceChargeTotal) }}</b>
+            = Total <b>{{ money(s.totalRevenue) }}</b>
+            <span class="reconcile__note">
+              Tax and service charge apply to the whole order, so they are not attributed to any
+              category — the bars above add up to the item revenue.
+            </span>
+          </p>
+        }
+        }
+      }
+    </section>
+
+    <!-- ---- FR-20: low stock. No date dimension — deliberately outside the range picker. -->
+    <section class="panel panel--alert" aria-label="Low stock">
+      <h2 class="panel__title">
+        Low stock
+        <button type="button" class="btn btn--ghost btn--xs" (click)="reloadLowStock()"><lucide-icon [img]="icons.refresh" [size]="13"></lucide-icon>Refresh</button>
+      </h2>
+      <p class="panel__note">Current levels — not affected by the date range.</p>
+
+      @if (lowLoading()) {
+        <p class="muted">Checking the store…</p>
+      } @else if (lowError()) {
+        <p class="err" role="alert">{{ lowError() }}</p>
+      } @else if (lowStock().length === 0) {
+        <div class="clear">
+          <lucide-icon class="clear__glyph" [img]="icons.ok" [size]="24"></lucide-icon>
+          <p class="clear__title">Everything above threshold</p>
+        </div>
+      } @else {
+        <ul class="alerts">
+          @for (i of lowStock(); track i.id) {
+            <li class="alert">
+              <span class="alert__name">{{ i.name }}</span>
+              <span class="alert__nums">
+                <b class="alert__stock">{{ i.stockQty }}</b>
+                <span class="alert__unit">{{ i.unit }}</span>
+                <span class="alert__thr">threshold {{ i.lowStockThreshold }}</span>
+              </span>
+            </li>
+          }
+        </ul>
+        <a class="btn btn--ghost btn--sm" routerLink="/inventory">Restock in Inventory →</a>
+      }
+    </section>
+
+    <!-- ---- FR-24: top sellers --------------------------------------------- -->
+    <section class="panel" aria-label="Top selling items">
+      <h2 class="panel__title">Top sellers</h2>
+      <p class="panel__note">By quantity sold in the selected range.</p>
+
+      @if (topLoading()) {
+        <p class="muted">Counting…</p>
+      } @else if (topError()) {
+        <p class="err" role="alert">{{ topError() }}</p>
+      } @else if (topItems().length === 0) {
+        <div class="empty">
+          <p class="empty__title">Nothing sold in this range</p>
+        </div>
+      } @else {
+        <ol class="ranks">
+          @for (item of topItems(); track item.menuItemId; let idx = $index) {
+            <li class="rank">
+              <span class="rank__no">{{ idx + 1 }}</span>
+              <div class="rank__body">
+                <div class="rank__head">
+                  <span class="rank__name">{{ item.name }}</span>
+                  <span class="rank__qty">{{ item.quantitySold }}</span>
+                </div>
+                <div class="bar__track bar__track--slim">
+                  <div class="bar__fill bar__fill--alt" [style.width.%]="barWidth(item)"></div>
+                </div>
+                <span class="rank__meta">{{ item.categoryName }} · {{ money(item.revenue) }}</span>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  </div>
+</main>

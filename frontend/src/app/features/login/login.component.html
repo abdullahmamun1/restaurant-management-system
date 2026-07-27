@@ -1,0 +1,64 @@
+<main class="stage">
+  <section class="ticket" aria-labelledby="ticket-brand">
+    <span class="stamp" aria-hidden="true">Pass</span>
+
+    <header class="ticket__head">
+      <p class="eyebrow ticket__eyebrow">Guest Check · Staff Entry</p>
+      <h1 id="ticket-brand" class="ticket__brand">La&nbsp;Braise</h1>
+      <p class="ticket__sub">Dine-In Operations Terminal</p>
+    </header>
+
+    <div class="rule"></div>
+
+    <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label class="field__label" for="username">Server ID</label>
+        <input
+          id="username"
+          class="field__input"
+          type="text"
+          autocomplete="username"
+          spellcheck="false"
+          formControlName="username"
+          placeholder="e.g. waiter" />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="password">Passcode</label>
+        <input
+          id="password"
+          class="field__input"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          placeholder="••••••••" />
+      </div>
+
+      @if (error()) {
+        <p class="form__error" role="alert"><lucide-icon [img]="icons.alert" [size]="15"></lucide-icon> {{ error() }}</p>
+      }
+
+      <button class="btn form__submit" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Opening…' : 'Clock In →' }}
+      </button>
+    </form>
+
+    <div class="rule rule--dashed"></div>
+
+    <div class="demo">
+      <p class="eyebrow demo__label">Demo accounts · tap to fill</p>
+      <div class="demo__chips">
+        @for (d of demos; track d.username) {
+          <button
+            type="button"
+            class="chip"
+            [attr.data-role]="d.role"
+            (click)="fill(d.username)">
+            {{ d.label }}
+          </button>
+        }
+      </div>
+      <p class="demo__note">Passcode for all demo accounts: <code>password123</code></p>
+    </div>
+  </section>
+</main>

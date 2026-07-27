@@ -1,0 +1,191 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Inventory</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="inv">
+  @if (error(); as e) {
+    <p class="banner" role="alert">
+      <lucide-icon [img]="icons.alert" [size]="15"></lucide-icon>
+      {{ e }}
+      <button class="banner__x" (click)="error.set(null)">dismiss</button>
+    </p>
+  }
+
+  <div class="inv__head">
+    <div class="inv__title-wrap">
+      <h1 class="inv__title">Ingredients</h1>
+      @if (lowStockCount() > 0) {
+        <button class="lowpill" [class.lowpill--on]="lowStockOnly()" (click)="lowStockOnly.set(!lowStockOnly())">
+          <lucide-icon [img]="icons.warn" [size]="13"></lucide-icon>
+          {{ lowStockCount() }} low-stock
+        </button>
+      }
+    </div>
+    <button class="btn btn--sm" (click)="openCreate()">
+      <lucide-icon [img]="icons.add" [size]="15"></lucide-icon>
+      New ingredient
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="muted">Loading inventory…</p>
+  } @else if (visible().length === 0) {
+    <p class="muted">{{ lowStockOnly() ? 'No low-stock ingredients.' : 'No ingredients yet. Create one to start tracking stock.' }}</p>
+  } @else {
+    <table class="grid">
+      <colgroup>
+        <col class="col--name" />
+        <col class="col--stock" />
+        <col class="col--thresh" />
+        <col class="col--actions" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Ingredient</th>
+          <th class="num">In stock</th>
+          <th class="num">Threshold</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ing of visible(); track ing.id) {
+          <tr [class.row--low]="ing.lowStock">
+            <td>
+              <span class="name-cell">
+                <span class="ing__name">{{ ing.name }}</span>
+                @if (ing.lowStock) { <span class="tag tag--low">LOW</span> }
+              </span>
+            </td>
+            <td class="num stock"><span class="qty">{{ ing.stockQty }}</span><span class="unit">{{ ing.unit }}</span></td>
+            <td class="num muted"><span class="qty">{{ ing.lowStockThreshold }}</span><span class="unit">{{ ing.unit }}</span></td>
+            <td class="actions-col">
+              <button class="btn btn--ghost btn--sm" (click)="openAdjust(ing)">
+                <lucide-icon [img]="icons.adjust" [size]="14"></lucide-icon>
+                Adjust
+              </button>
+              <button class="icon" title="History" aria-label="History" (click)="openHistory(ing)">
+                <lucide-icon [img]="icons.history" [size]="16"></lucide-icon>
+              </button>
+              <button class="icon" title="Edit" aria-label="Edit" (click)="openEdit(ing)">
+                <lucide-icon [img]="icons.edit" [size]="16"></lucide-icon>
+              </button>
+              <button class="icon icon--danger" title="Delete" aria-label="Delete" (click)="askDelete(ing)">
+                <lucide-icon [img]="icons.delete" [size]="16"></lucide-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</main>
+
+<!-- Ingredient create/edit dialog -->
+@if (ingredientDialog(); as d) {
+  <div class="overlay" (click)="closeDialogs()">
+    <form class="dialog" [formGroup]="ingredientForm" (ngSubmit)="saveIngredient()" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">{{ d.mode === 'create' ? 'New ingredient' : 'Edit ingredient' }}</h3>
+      <div class="form-grid">
+        <div class="dfield dfield--wide">
+          <label class="dfield__label" for="g-name">Name</label>
+          <input id="g-name" class="dfield__input" formControlName="name" />
+        </div>
+        <div class="dfield">
+          <label class="dfield__label" for="g-unit">Unit</label>
+          <input id="g-unit" class="dfield__input" placeholder="g, ml, pcs" formControlName="unit" />
+        </div>
+        <div class="dfield">
+          <label class="dfield__label" for="g-thresh">Low-stock threshold</label>
+          <input id="g-thresh" class="dfield__input" type="number" min="0" step="0.001" formControlName="lowStockThreshold" />
+        </div>
+        @if (d.mode === 'create') {
+          <div class="dfield dfield--wide">
+            <label class="dfield__label" for="g-stock">Initial stock</label>
+            <input id="g-stock" class="dfield__input" type="number" min="0" step="0.001" formControlName="initialStock" />
+            <span class="hint">After creation, stock changes only through recorded adjustments.</span>
+          </div>
+        }
+      </div>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="submit" class="btn btn--sm" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save' }}</button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- Adjust dialog -->
+@if (adjustTarget(); as t) {
+  <div class="overlay" (click)="closeDialogs()">
+    <form class="dialog" [formGroup]="adjustForm" (ngSubmit)="saveAdjust()" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">Adjust stock — {{ t.name }}</h3>
+      <p class="muted">Current: {{ t.stockQty }} {{ t.unit }}. Use a negative amount to remove stock.</p>
+      <div class="form-grid">
+        <div class="dfield">
+          <label class="dfield__label" for="a-qty">Quantity change ({{ t.unit }})</label>
+          <input id="a-qty" class="dfield__input" type="number" step="0.001" formControlName="quantityChange" />
+        </div>
+        <div class="dfield">
+          <label class="dfield__label" for="a-reason">Reason</label>
+          <input id="a-reason" class="dfield__input" placeholder="Restock, waste, correction…" formControlName="reason" />
+        </div>
+      </div>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button type="submit" class="btn btn--sm" [disabled]="saving()">{{ saving() ? 'Applying…' : 'Apply adjustment' }}</button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- History dialog -->
+@if (historyFor(); as h) {
+  <div class="overlay" (click)="closeDialogs()">
+    <div class="dialog dialog--wide" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">Adjustment history — {{ h.name }}</h3>
+      <p class="muted hist__note">Immutable audit log — records can't be edited or deleted.</p>
+      @if (historyRows().length === 0) {
+        <p class="muted">No adjustments recorded yet.</p>
+      } @else {
+        <ul class="hist">
+          @for (a of historyRows(); track a.id) {
+            <li class="hist__row">
+              <span class="hist__delta" [class.hist__delta--neg]="a.quantityChange < 0">
+                {{ a.quantityChange > 0 ? '+' : '' }}{{ a.quantityChange }} {{ h.unit }}
+              </span>
+              <span class="hist__reason">{{ a.reason }}</span>
+              <span class="hist__result">→ {{ a.resultingStock }} {{ h.unit }}</span>
+              <span class="hist__meta">{{ a.managerUsername }} · {{ a.createdAt | date:'MMM d, HH:mm' }}</span>
+            </li>
+          }
+        </ul>
+      }
+      <div class="dialog__actions">
+        <button class="btn btn--ghost btn--sm" (click)="closeDialogs()">Close</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Confirm dialog -->
+@if (confirm(); as c) {
+  <div class="overlay" (click)="closeDialogs()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <h3 class="dialog__title">Confirm</h3>
+      <p class="muted">{{ c.message }}</p>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost btn--sm" (click)="closeDialogs()">Cancel</button>
+        <button class="btn btn--sm btn--danger" [disabled]="saving()" (click)="runConfirm()">
+          {{ saving() ? 'Working…' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

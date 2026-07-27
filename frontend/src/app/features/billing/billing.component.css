@@ -1,0 +1,327 @@
+/*
+ * The till: a dark worklist on the left, a cream guest-check on the right. The paper metaphor is
+ * doing real work here — a bill on paper is what the cashier and the guest both understand, and it
+ * makes the amounts the brightest thing on a dim screen.
+ */
+.till {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.muted { color: var(--ink-faint); font-size: 0.9rem; }
+
+.till__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+.till__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: #f3e9dd;
+  margin: 0;
+}
+.till__count {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ---- A refusal, not a banner --------------------------------------------
+   A failed payment took no money and moved no stock. It gets stated plainly and stays put; the
+   restock variant is the one error the cashier cannot clear themselves, so it is louder. */
+.halt {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  border: 1px solid rgba(198, 151, 73, 0.5);
+  background: rgba(198, 151, 73, 0.1);
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.2rem;
+}
+.halt--restock {
+  border-color: rgba(217, 84, 30, 0.6);
+  background: rgba(217, 84, 30, 0.12);
+}
+.halt__mark {
+  flex: none;
+  color: var(--gold);
+  margin-top: 0.1rem;
+}
+.halt--restock .halt__mark { color: var(--ember-lit); }
+.halt__text {
+  margin: 0;
+  color: #f0e2c8;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.halt__next {
+  margin: 0.45rem 0 0;
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.till__grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  gap: 1.6rem;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .till__grid { grid-template-columns: 1fr; }
+}
+
+/* ---- Step 1: the worklist ---- */
+.waiting {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.tab {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.4rem 0.8rem;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  color: var(--ink-dim);
+  background: rgba(255, 244, 230, 0.04);
+  border: 1px solid rgba(240, 220, 190, 0.14);
+  border-left: 3px solid var(--role-cashier);
+  border-radius: 3px;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
+}
+.tab:hover { background: rgba(255, 244, 230, 0.07); transform: translateY(-1px); }
+.tab--open {
+  border-color: var(--ember);
+  border-left-color: var(--ember);
+  background: rgba(217, 84, 30, 0.1);
+}
+.tab__table {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #f3e9dd;
+}
+.tab__meta {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.tab__total {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--gold);
+}
+
+/* ---- Empty states ---- */
+.clear, .idle {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-faint);
+}
+.clear__glyph {
+  display: block;
+  margin: 0 auto 0.5rem;
+  color: var(--role-waiter);
+}
+.clear__title, .idle__title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink-dim);
+  margin: 0 0 0.3rem;
+}
+.clear__sub, .idle__sub { font-size: 0.88rem; margin: 0; }
+
+/* ---- Step 2/3: the guest check ---- */
+.paper {
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  color: var(--paper-ink);
+  border-radius: 3px;
+  box-shadow: var(--shadow-lift);
+  padding: 1.4rem 1.5rem;
+}
+.paper__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dashed var(--paper-line);
+}
+.paper__table {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+.paper__no {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--paper-mute);
+}
+
+.lines {
+  list-style: none;
+  margin: 0;
+  padding: 0.9rem 0;
+  display: grid;
+  gap: 0.55rem;
+}
+.line {
+  display: grid;
+  grid-template-columns: 2.3rem 1fr auto auto;
+  align-items: baseline;
+  gap: 0.7rem;
+  font-size: 0.94rem;
+}
+.line__qty { font-family: var(--font-mono); color: var(--paper-mute); }
+.line__note {
+  display: block;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--paper-mute);
+}
+.line__unit {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--paper-mute);
+}
+.line__total {
+  font-family: var(--font-mono);
+  min-width: 4.5rem;
+  text-align: right;
+}
+
+.sums {
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--paper-line);
+  display: grid;
+  gap: 0.35rem;
+}
+.sums__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.sums__row dt {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper-mute);
+}
+.sums__row dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+.sums__row--total {
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--paper-line);
+}
+.sums__row--total dt {
+  color: var(--paper-ink);
+  font-weight: 600;
+}
+.sums__row--total dd {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.35rem;
+}
+
+/* ---- The settlement ---- */
+.settle { margin-top: 1.3rem; }
+.settle__label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 0.6rem;
+}
+.methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+/* Buttons rather than a <select>: one tap each, and all three reachable with a thumb. */
+.method {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  padding: 0.9rem 0.5rem;
+  cursor: pointer;
+  color: var(--ink-dim);
+  background: rgba(255, 244, 230, 0.04);
+  border: 1px solid rgba(240, 220, 190, 0.18);
+  border-radius: 3px;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+.method:hover:not(:disabled) { color: #f3e9dd; border-color: rgba(240, 220, 190, 0.4); }
+.method--on {
+  color: #fff5ec;
+  border-color: var(--role-cashier);
+  background: rgba(58, 90, 134, 0.28);
+}
+.method:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/*
+ * Deliberately unlike every other primary button in the app — this is the one control that cannot
+ * be undone, so it is wider, heavier, and does not share the ember gradient of "Confirm & send to
+ * kitchen" or "Mark ready".
+ */
+.take {
+  width: 100%;
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1.15rem 1rem;
+  color: #f4f8ff;
+  background: linear-gradient(180deg, #4a6d9e, var(--role-cashier));
+  border: none;
+  border-radius: 3px;
+  box-shadow: 0 14px 30px -14px rgba(58, 90, 134, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 0.15s ease, filter 0.2s ease;
+}
+.take:hover:not(:disabled) { transform: translateY(-2px); filter: saturate(1.15); }
+.take:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.settle__warn {
+  margin: 0.7rem 0 1.1rem;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  text-align: center;
+}
+.settle__ro {
+  margin: 1.2rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}

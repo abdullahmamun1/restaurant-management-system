@@ -1,0 +1,88 @@
+<header class="appbar">
+  <div class="appbar__brand">
+    <span class="appbar__mark">La&nbsp;Braise</span>
+    <span class="appbar__here">Tables &amp; Orders</span>
+  </div>
+  <a class="btn btn--ghost btn--sm" routerLink="/">
+    <lucide-icon [img]="icons.back" [size]="14"></lucide-icon>
+    Home
+  </a>
+</header>
+
+<main class="floor">
+  @if (error(); as e) {
+    <p class="banner" role="alert">
+      <lucide-icon [img]="icons.alert" [size]="15"></lucide-icon>
+      {{ e }}
+      <button class="banner__x" (click)="error.set(null)">dismiss</button>
+    </p>
+  }
+
+  <div class="floor__head">
+    <h1 class="floor__title">The Floor</h1>
+    <span class="floor__count">{{ openCount() }} of {{ tables().length }} occupied</span>
+  </div>
+
+  @if (canEdit()) {
+    <p class="floor__hint">Tap a free table to open an order · tap an occupied one to pick it up.</p>
+  } @else {
+    <p class="floor__hint">Read-only view — only a waiter can open and build orders.</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Reading the floor…</p>
+  } @else {
+    <ul class="tables">
+      @for (t of tables(); track t.id) {
+        <li>
+          <button
+            type="button"
+            class="tbl"
+            [class.tbl--free]="t.status === 'AVAILABLE'"
+            [class.tbl--busy]="t.status === 'OCCUPIED'"
+            [class.tbl--service]="t.status === 'NEEDS_SERVICE'"
+            [disabled]="busyTableId() === t.id || (!canEdit() && !t.activeOrderId)"
+            (click)="openTable(t)">
+            <span class="tbl__label">{{ t.label }}</span>
+            <span class="tbl__seats">{{ t.seats }} seats</span>
+            <span class="tbl__status">
+              @if (busyTableId() === t.id) {
+                working…
+              } @else if (t.status === 'AVAILABLE') {
+                free
+              } @else if (t.status === 'NEEDS_SERVICE') {
+                needs service
+              } @else {
+                occupied
+              }
+            </span>
+            @if (t.activeOrderId) {
+              <!--
+                The order's own state, not the table's. This is what a waiter acts on: READY means
+                go and collect it, SERVED means it is ready to be billed. Colour-coded to match the
+                pill on the order screen so a status looks the same wherever it appears.
+              -->
+              <span class="tbl__line">
+                @if (t.activeOrderStatus; as s) {
+                  <span class="opill" [class]="'opill opill--' + s.toLowerCase()">{{ s }}</span>
+                }
+                <span class="tbl__order">#{{ t.activeOrderId }}</span>
+              </span>
+            }
+          </button>
+          @if (canEdit() && t.status !== 'AVAILABLE') {
+            <button
+              type="button"
+              class="flag"
+              [class.flag--on]="t.status === 'NEEDS_SERVICE'"
+              [disabled]="busyTableId() === t.id"
+              (click)="toggleServiceFlag(t, $event)">
+              <lucide-icon [img]="t.status === 'NEEDS_SERVICE' ? icons.ok : icons.flag" [size]="13"></lucide-icon>
+              {{ t.status === 'NEEDS_SERVICE' ? 'clear flag' : 'needs service' }}
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+</main>

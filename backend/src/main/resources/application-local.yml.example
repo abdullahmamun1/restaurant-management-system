@@ -1,0 +1,12 @@
+# Copy this file to `application-local.yml` (same folder) and fill in your NeonDB
+# credentials. `application-local.yml` is gitignored so secrets are never committed.
+#
+# Get the connection details from the Neon dashboard → "Connection Details".
+# Use the JDBC form and keep `sslmode=require` (Neon rejects non-SSL connections).
+# Prefer the POOLED connection host (contains "-pooler") for app workloads.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://ep-your-endpoint-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
+    username: neondb_owner
+    password: your-neon-password-here
